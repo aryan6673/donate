@@ -4,6 +4,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import confetti from "canvas-confetti";
 import { useSWRConfig } from "swr";
+import { useRouter } from "next/navigation";
 
 const TIERS = [500, 999, 2499, 9999]; // cents: $5, $9.99, $24.99, $99.99
 
@@ -15,6 +16,7 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
   const stripe = useStripe();
   const elements = useElements();
   const { mutate } = useSWRConfig();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,11 +44,15 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
       return;
     }
 
-    if (paymentIntent && paymentIntent.status === "succeeded") {
+    if (paymentIntent) {
       const charged = typeof paymentIntent.amount === "number" ? paymentIntent.amount : amountCents;
-      await onSuccess(charged);
-      await mutate("/api/stats");
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 } });
+      if (paymentIntent.status === "succeeded") {
+        await onSuccess(charged);
+        await mutate("/api/stats");
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 } });
+      }
+      // Always navigate to success page to show status
+      router.push(`/success?payment_intent=${paymentIntent.id}`);
     }
 
     setLoading(false);
