@@ -11,10 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
     }
 
-    if (!name || !email) {
-      return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
-    }
-
+    // Name and email are optional now; we only block confirmation on the client.
     const baseAmount = Math.max(100, Math.floor(Number(amount || 0))); // cents, $1 min
     const fees = coverFees ? Math.ceil(baseAmount * 0.029 + 30) : 0; // ~2.9% + 30c
     const finalAmount = baseAmount + fees;
