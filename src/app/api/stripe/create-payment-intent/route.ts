@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -11,7 +12,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
     }
 
-    // Name and email are optional now; we only block confirmation on the client.
     const baseAmount = Math.max(100, Math.floor(Number(amount || 0))); // cents, $1 min
     const fees = coverFees ? Math.ceil(baseAmount * 0.029 + 30) : 0; // ~2.9% + 30c
     const finalAmount = baseAmount + fees;
@@ -31,6 +31,29 @@ export async function POST(req: Request) {
       },
       receipt_email: email || undefined,
     });
+
+    // Optional: insert a 'processing' row for analytics; final status updated by webhook
+    try {
+      const supabase = getSupabaseAdmin();
+      await supabase.from("donations").upsert(
+        {
+          payment_intent_id: pi.id,
+          amount_cents: finalAmount,
+          currency: "usd",
+          status: "processing",
+          name: name || null,
+          email: email || null,
+          github_id: githubId || null,
+          message: message || null,
+          is_public: !!publicDonation,
+          cover_fees: !!coverFees,
+          recurring: !!recurring,
+        },
+        { onConflict: "payment_intent_id" }
+      );
+    } catch (e) {
+      // ignore DB errors here
+    }
 
     return NextResponse.json({ clientSecret: pi.client_secret });
   } catch (e: any) {

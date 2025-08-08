@@ -3,11 +3,16 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+function usd(cents: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format((cents || 0) / 100);
+}
 
 export default function Hero() {
-  const { data: profile } = useSWR("/api/github/profile", fetcher);
-  const { data: stats } = useSWR("/api/stats", fetcher);
+  const { data: profile } = useSWR("/api/github/profile", (url) => fetch(url).then((r) => r.json()));
+  const { data } = useSWR("/api/donations", (url) => fetch(url).then((r) => r.json()), { refreshInterval: 15000 });
+  const { data: stats } = useSWR("/api/stats", (url) => fetch(url).then((r) => r.json()));
+
+  const total = data?.totalRaisedCents ?? 0;
 
   return (
     <section className="relative mx-auto max-w-6xl px-6 pt-20 pb-10">
@@ -42,11 +47,8 @@ export default function Hero() {
             </a>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Stat
-              label="Total raised"
-              value={new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(((stats?.totalRaisedCents ?? 0) as number) / 100)}
-            />
+          <div className="mt-4 flex items-center justify-center gap-4 text-sm text-slate-300">
+            <span>Total raised: <strong className="text-white">{usd(total)}</strong></span>
             <Stat label="Repos" value={profile?.public_repos ?? "—"} />
             <Stat label="Followers" value={profile?.followers ?? "—"} />
             <Stat label="Commits (yr)" value={stats?.commitsYear ?? "—"} />
