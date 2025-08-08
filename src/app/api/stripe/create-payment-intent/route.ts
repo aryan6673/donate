@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-07-30.basil",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
   try {
@@ -13,11 +11,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
     }
 
-    const baseAmount = Math.max(100, Math.floor(Number(amount || 0))); // in cents, $1 min
+    const baseAmount = Math.max(100, Math.floor(Number(amount || 0))); // cents, $1 min
     const fees = coverFees ? Math.ceil(baseAmount * 0.029 + 30) : 0; // ~2.9% + 30c
     const finalAmount = baseAmount + fees;
 
-    // One-time only for now. For recurring, use Stripe Subscriptions (future work)
     const pi = await stripe.paymentIntents.create({
       amount: finalAmount,
       currency: "usd",
