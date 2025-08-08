@@ -24,6 +24,17 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Read metadata fields from the form via DOM to avoid prop drilling
+  const readMeta = () => {
+    const name = (document.querySelector('input[name="donor_name"]') as HTMLInputElement)?.value || "";
+    const email = (document.querySelector('input[name="donor_email"]') as HTMLInputElement)?.value || "";
+    const githubId = (document.querySelector('input[name="donor_github"]') as HTMLInputElement)?.value || "";
+    const message = (document.querySelector('textarea[name="donor_message"]') as HTMLTextAreaElement)?.value || "";
+    const publicDonation = (document.querySelector('input[name="donor_public"]') as HTMLInputElement)?.checked ?? true;
+    const coverFees = (document.querySelector('input[name="donor_fees"]') as HTMLInputElement)?.checked ?? true;
+    return { name, email, githubId, message, publicDonation, coverFees };
+  };
+
   const handleDonate = async () => {
     if (disabled) {
       setError("Enter your name and a valid email to continue.");
@@ -39,17 +50,6 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
       setLoading(false);
       return;
     }
-
-    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: `${window.location.origin}/success` },
-      redirect: "if_required",
-    });
-
-    if (confirmErr) {
-      setError(confirmErr.message || "Payment failed");
-      setLoading(false);
-      return;
     }
 
     if (paymentIntent) {
@@ -95,13 +95,17 @@ export default function DonateControl() {
   const emailOk = validEmail(email);
   const readyToPay = name.trim().length > 0 && emailOk;
 
+  // Helper: extract PI id from client secret (pi_xxx_secret_xxx)
+  const getPiId = (secret: string | null) => secret ? secret.split("_secret_")[0] : null;
+
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     if (key) setStripePromise(loadStripe(key));
   }, []);
 
+  // Only recreate PaymentIntent when pricing changes (amount or coverFees). Debounce to avoid thrash.
   useEffect(() => {
-    // Always create/refresh PI so PaymentElement loads; include metadata when available
+    let t: any;
     const createPI = async () => {
       setPiLoading(true);
       setPiError(null);
@@ -109,7 +113,7 @@ export default function DonateControl() {
         const res = await fetch("/api/stripe/create-payment-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: amountCents, coverFees, name, message, email, githubId, publicDonation, recurring: false }),
+          body: JSON.stringify({ amount: amountCents, coverFees, recurring: false }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || "Failed to create payment intent");
@@ -121,8 +125,27 @@ export default function DonateControl() {
         setPiLoading(false);
       }
     };
-    createPI();
-  }, [amountCents, coverFees, name, message, email, githubId, publicDonation]);
+    t = setTimeout(createPI, 400);
+    return () => clearTimeout(t);
+  }, [amountCents, coverFees]);
+
+  useEffect(() => {
+    // Update PaymentIntent metadata just before confirmation
+    const updateMetadata = async () => {
+      if (!clientSecret || !name || !email) return;
+      try {
+        const piId = getPiId(clientSecret);
+        await fetch(`/api/stripe/update-payment-intent/${piId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, githubId, message, publicDonation }),
+        });
+      } catch (e) {
+        console.warn("Failed to update PaymentIntent metadata:", e);
+      }
+    };
+    updateMetadata();
+  }, [clientSecret, name, email, githubId, message, publicDonation]);
 
   const impact = useMemo(() => {
     if (amountCents < 700) return "Covers server uptime for a few days";
