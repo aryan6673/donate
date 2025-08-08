@@ -28,7 +28,13 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
       return;
     }
 
-    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({ elements, redirect: "if_required" });
+    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/success`,
+      },
+      redirect: "if_required",
+    });
 
     if (confirmErr) {
       setError(confirmErr.message || "Payment failed");
