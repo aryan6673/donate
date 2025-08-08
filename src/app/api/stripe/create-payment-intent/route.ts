@@ -5,10 +5,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { amount, recurring, coverFees, name, message, email, publicDonation } = await req.json();
+    const { amount, recurring, coverFees, name, message, email, githubId, publicDonation } = await req.json();
 
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
+    }
+
+    if (!name || !email) {
+      return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
     }
 
     const baseAmount = Math.max(100, Math.floor(Number(amount || 0))); // cents, $1 min
@@ -25,6 +29,7 @@ export async function POST(req: Request) {
         name: name || "",
         message: message || "",
         email: email || "",
+        githubId: githubId || "",
         publicDonation: String(!!publicDonation),
       },
       receipt_email: email || undefined,

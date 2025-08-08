@@ -12,6 +12,10 @@ function currency(amountCents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amountCents / 100);
 }
 
+function validEmail(v: string) {
+  return /.+@.+\..+/.test(v);
+}
+
 function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number; onSuccess: (chargedCents: number) => Promise<void> | void; disabled: boolean }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -78,10 +82,14 @@ export default function DonateControl() {
   const [coverFees, setCoverFees] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [githubId, setGithubId] = useState("");
   const [message, setMessage] = useState("");
   const [publicDonation, setPublicDonation] = useState(true);
   const [piError, setPiError] = useState<string | null>(null);
   const [piLoading, setPiLoading] = useState(false);
+
+  const emailOk = validEmail(email);
+  const canInitPI = name.trim().length > 0 && emailOk;
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -89,15 +97,19 @@ export default function DonateControl() {
   }, []);
 
   useEffect(() => {
-    // Create/refresh PaymentIntent when amount or fee coverage changes
+    // Only create/refresh PaymentIntent when required fields are present
     const createPI = async () => {
+      if (!canInitPI) {
+        setClientSecret(null);
+        return;
+      }
       setPiLoading(true);
       setPiError(null);
       try {
         const res = await fetch("/api/stripe/create-payment-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: amountCents, coverFees, name, message, email, publicDonation, recurring: false }),
+          body: JSON.stringify({ amount: amountCents, coverFees, name, message, email, githubId, publicDonation, recurring: false }),
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error || "Failed to create payment intent");
@@ -110,7 +122,7 @@ export default function DonateControl() {
       }
     };
     createPI();
-  }, [amountCents, coverFees, name, message, email, publicDonation]);
+  }, [amountCents, coverFees, name, message, email, githubId, publicDonation, canInitPI]);
 
   const impact = useMemo(() => {
     if (amountCents < 700) return "Covers server uptime for a few days";
@@ -122,6 +134,8 @@ export default function DonateControl() {
   if (!stripePromise) {
     return <div className="mt-4 text-slate-400">Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to load Stripe checkout.</div>;
   }
+
+  const showMissing = !canInitPI;
 
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -149,8 +163,23 @@ export default function DonateControl() {
         </div>
 
         <div className="mt-4 grid gap-3">
-          <input placeholder="Your name (optional)" value={name} onChange={(e) => setName(e.target.value)} className="glass rounded-lg px-3 py-2" />
-          <input placeholder="Email for receipt (optional)" value={email} onChange={(e) => setEmail(e.target.value)} className="glass rounded-lg px-3 py-2" />
+          <div className="grid gap-1">
+            <label className="text-sm">
+              Name <span className="text-rose-400">*</span>
+            </label>
+            <input required placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} className="glass rounded-lg px-3 py-2" />
+          </div>
+          <div className="grid gap-1">
+            <label className="text-sm">
+              Email <span className="text-rose-400">*</span>
+            </label>
+            <input required type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="glass rounded-lg px-3 py-2" />
+            {!emailOk && email.length > 0 && <span className="text-xs text-rose-400">Enter a valid email</span>}
+          </div>
+          <div className="grid gap-1">
+            <label className="text-sm">GitHub ID (username)</label>
+            <input placeholder="e.g. aryan6673" value={githubId} onChange={(e) => setGithubId(e.target.value)} className="glass rounded-lg px-3 py-2" />
+          </div>
           <textarea placeholder="Message (optional)" value={message} onChange={(e) => setMessage(e.target.value)} className="glass rounded-lg px-3 py-2 min-h-20" />
         </div>
 
@@ -159,7 +188,8 @@ export default function DonateControl() {
 
       <div>
         {piError && <p className="mb-3 text-rose-400 text-sm">{piError}</p>}
-        {clientSecret ? (
+        {showMissing && <p className="mb-3 text-amber-400 text-sm">Enter your name and a valid email to continue.</p>}
+        {clientSecret && !showMissing ? (
           <Elements key={`el-${clientSecret}`} stripe={stripePromise} options={{ appearance: { theme: "night" }, clientSecret }}>
             <PaymentBox
               amountCents={amountCents}
