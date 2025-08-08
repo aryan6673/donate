@@ -1,10 +1,16 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import confetti from "canvas-confetti";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
-
 const TIERS = [150, 599, 1499, 4999];
+
+function currency(amountCents: number) {
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amountCents / 100);
+}
 
 function impactFor(amount: number) {
   if (amount < 300) return "1 week of uptime & monitoring";
@@ -13,80 +19,142 @@ function impactFor(amount: number) {
   return "2+ community bounties funded";
 }
 
-export default function DonateControl() {
-  const [amount, setAmount] = useState<number>(599);
-  const [recurring, setRecurring] = useState(false);
+function DonateForm() {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [amountCents, setAmountCents] = useState(TIERS[1]);
   const [coverFees, setCoverFees] = useState(true);
-  const [privacy, setPrivacy] = useState<"public" | "anon">("public");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [publicDonation, setPublicDonation] = useState(true);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { data: stats, mutate } = useSWR("/api/stats", fetcher);
 
-  const fees = useMemo(() => (coverFees ? Math.round(amount * 0.029 + 5) : 0), [amount, coverFees]);
-  const total = amount + fees;
+  useEffect(() => {
+    const createPI = async () => {
+      setLoading(true);
+      setError(null);
+      const res = await fetch("/api/stripe/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amountCents, coverFees, name, message, email, publicDonation, recurring: false }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json?.error || "Failed to create payment intent");
+      } else {
+        setClientSecret(json.clientSecret);
+      }
+      setLoading(false);
+    };
+    createPI();
+  }, [amountCents, coverFees, name, message, email, publicDonation]);
 
-  async function donate() {
-    // Placeholder: simulate a success and update counter
-    const res = await fetch("/api/stats", { method: "POST", body: JSON.stringify({ amount, coverFees }) });
-    const json = await res.json();
-    mutate({ ...stats, totalRaised: json.totalRaised }, { revalidate: false });
-    // TODO: open Stripe/UPI/PayPal modal
-  }
+  const handleDonate = async () => {
+    if (!stripe || !elements) return;
+    setLoading(true);
+    setError(null);
+
+    const { error: submitErr } = await elements.submit();
+    if (submitErr) {
+      setError(submitErr.message || "Payment form error");
+      setLoading(false);
+      return;
+    }
+
+    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      redirect: "if_required",
+    });
+
+    if (confirmErr) {
+      setError(confirmErr.message || "Payment failed");
+      setLoading(false);
+      return;
+    }
+
+    if (paymentIntent && paymentIntent.status === "succeeded") {
+      await fetch("/api/stats", { method: "POST", body: JSON.stringify({ amountCents }) });
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 } });
+    }
+
+    setLoading(false);
+  };
+
+  const impact = useMemo(() => {
+    if (amountCents < 700) return "Covers server uptime for a few days";
+    if (amountCents < 2000) return "Funds a small feature or bugfix sprint";
+    if (amountCents < 6000) return "Supports a full feature sprint + tests";
+    return "Funds multiple bounties and contributor sponsorships";
+  }, [amountCents]);
 
   return (
-    <div className="mt-6 grid gap-6">
-      <div className="flex flex-wrap gap-2">
-        {TIERS.map(t => (
-          <button key={t} onClick={() => setAmount(t)} className={`focus-ring rounded-full px-4 py-2 text-sm font-medium transition ${amount === t ? "glass-strong" : "glass"}`}>
-            ₹{t.toLocaleString("en-IN")}
-          </button>
-        ))}
+    <div className="mt-6 grid gap-6 md:grid-cols-2">
+      <div>
+        <div className="flex flex-wrap gap-2">
+          {TIERS.map((t) => (
+            <button key={t} onClick={() => setAmountCents(t)} className={`focus-ring rounded-full px-4 py-2 text-sm glass ${amountCents === t ? "ring-2 ring-cyan-400/60" : ""}`}>
+              {currency(t)}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <label className="text-sm text-slate-400">Custom amount: {currency(amountCents)}</label>
+          <input className="mt-2 w-full" type="range" min={300} max={20000} step={100} value={amountCents} onChange={(e) => setAmountCents(Number(e.target.value))} />
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <input type="checkbox" checked={coverFees} onChange={(e) => setCoverFees(e.target.checked)} /> Cover processing fees
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-300">
+            <input type="checkbox" checked={publicDonation} onChange={(e) => setPublicDonation(e.target.checked)} /> Show on public wall
+          </label>
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          <input placeholder="Your name (optional)" value={name} onChange={(e) => setName(e.target.value)} className="glass rounded-lg px-3 py-2" />
+          <input placeholder="Email for receipt (optional)" value={email} onChange={(e) => setEmail(e.target.value)} className="glass rounded-lg px-3 py-2" />
+          <textarea placeholder="Message (optional)" value={message} onChange={(e) => setMessage(e.target.value)} className="glass rounded-lg px-3 py-2 min-h-20" />
+        </div>
+
+        <p className="mt-3 text-sm text-slate-400">Impact: {impact}</p>
       </div>
 
       <div>
-        <input type="range" min={50} max={10000} step={25} value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="w-full" />
-        <div className="mt-2 flex items-center justify-between text-sm text-slate-400">
-          <span>Custom: ₹{amount.toLocaleString("en-IN")}</span>
-          <span>{impactFor(amount)}</span>
-        </div>
+        {clientSecret ? (
+          <PaymentElement options={{ layout: "tabs" }} />
+        ) : (
+          <div className="text-slate-400">Loading payment form…</div>
+        )}
+        {error && <p className="mt-3 text-rose-400 text-sm">{error}</p>}
+        <button onClick={handleDonate} disabled={!clientSecret || !stripe || !elements || loading} className="mt-4 focus-ring glass-strong w-full rounded-xl py-3 font-medium">
+          {loading ? "Processing…" : "Donate with Stripe"}
+        </button>
       </div>
-
-      <div className="grid sm:grid-cols-2 gap-3">
-        <label className="glass rounded-xl p-3 flex items-center gap-2">
-          <input type="checkbox" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />
-          <span>Make this monthly</span>
-        </label>
-        <label className="glass rounded-xl p-3 flex items-center gap-2">
-          <input type="checkbox" checked={coverFees} onChange={(e) => setCoverFees(e.target.checked)} />
-          <span>Cover processing fees</span>
-        </label>
-      </div>
-
-      <div className="grid sm:grid-cols-2 gap-3">
-        <label className={`glass rounded-xl p-3 flex items-center gap-2 ${privacy === "public" ? "ring-1 ring-white/20" : ""}`}>
-          <input type="radio" name="privacy" checked={privacy === "public"} onChange={() => setPrivacy("public")} />
-          <span>Public wall</span>
-        </label>
-        <label className={`glass rounded-xl p-3 flex items-center gap-2 ${privacy === "anon" ? "ring-1 ring-white/20" : ""}`}>
-          <input type="radio" name="privacy" checked={privacy === "anon"} onChange={() => setPrivacy("anon")} />
-          <span>Anonymous</span>
-        </label>
-      </div>
-
-      <div className="flex items-center justify-between text-sm text-slate-300">
-        <div>
-          <div>Subtotal: ₹{amount.toLocaleString("en-IN")}</div>
-          {coverFees && <div className="text-slate-400">Fees: ₹{fees.toLocaleString("en-IN")}</div>}
-        </div>
-        <div className="text-right">
-          <div className="text-xs text-slate-400">Total</div>
-          <div className="text-xl font-semibold">₹{total.toLocaleString("en-IN")}</div>
-        </div>
-      </div>
-
-      <button onClick={donate} className="focus-ring glass-strong rounded-xl px-5 py-3 text-base font-semibold shadow-[0_0_30px_rgba(34,197,94,0.25)]">
-        Donate securely
-      </button>
-
-      <p className="text-xs text-slate-500">UPI/Stripe/PayPal integration coming next. Secure checkout with Apple/Google Pay supported.</p>
     </div>
+  );
+}
+
+export default function DonateControl() {
+  const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (key) setStripePromise(loadStripe(key));
+  }, []);
+
+  if (!stripePromise) {
+    return <div className="mt-4 text-slate-400">Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to load Stripe checkout.</div>;
+  }
+
+  return (
+    <Elements stripe={stripePromise} options={{ appearance: { theme: "night" } }}>
+      <DonateForm />
+    </Elements>
   );
 }
