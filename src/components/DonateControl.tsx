@@ -3,55 +3,18 @@ import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import confetti from "canvas-confetti";
-import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
-const TIERS = [150, 599, 1499, 4999];
+const TIERS = [500, 999, 2499, 9999]; // cents: $5, $9.99, $24.99, $99.99
 
 function currency(amountCents: number) {
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amountCents / 100);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amountCents / 100);
 }
 
-function impactFor(amount: number) {
-  if (amount < 300) return "1 week of uptime & monitoring";
-  if (amount < 1000) return "1 month hosting for a project";
-  if (amount < 2500) return "1 feature sprint or bug bounty";
-  return "2+ community bounties funded";
-}
-
-function DonateForm() {
+function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number; onSuccess: () => Promise<void> | void; disabled: boolean }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [amountCents, setAmountCents] = useState(TIERS[1]);
-  const [coverFees, setCoverFees] = useState(true);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [publicDonation, setPublicDonation] = useState(true);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { data: stats, mutate } = useSWR("/api/stats", fetcher);
-
-  useEffect(() => {
-    const createPI = async () => {
-      setLoading(true);
-      setError(null);
-      const res = await fetch("/api/stripe/create-payment-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: amountCents, coverFees, name, message, email, publicDonation, recurring: false }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error || "Failed to create payment intent");
-      } else {
-        setClientSecret(json.clientSecret);
-      }
-      setLoading(false);
-    };
-    createPI();
-  }, [amountCents, coverFees, name, message, email, publicDonation]);
 
   const handleDonate = async () => {
     if (!stripe || !elements) return;
@@ -65,10 +28,7 @@ function DonateForm() {
       return;
     }
 
-    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      redirect: "if_required",
-    });
+    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({ elements, redirect: "if_required" });
 
     if (confirmErr) {
       setError(confirmErr.message || "Payment failed");
@@ -77,12 +37,66 @@ function DonateForm() {
     }
 
     if (paymentIntent && paymentIntent.status === "succeeded") {
-      await fetch("/api/stats", { method: "POST", body: JSON.stringify({ amountCents }) });
+      await onSuccess();
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 } });
     }
 
     setLoading(false);
   };
+
+  return (
+    <div>
+      <PaymentElement options={{ layout: "tabs" }} />
+      {error && <p className="mt-3 text-rose-400 text-sm">{error}</p>}
+      <button onClick={handleDonate} disabled={disabled || !stripe || !elements || loading} className="mt-4 focus-ring glass-strong w-full rounded-xl py-3 font-medium">
+        {loading ? "Processing…" : `Donate ${currency(amountCents)}`}
+      </button>
+    </div>
+  );
+}
+
+export default function DonateControl() {
+  const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+  // Form state
+  const [amountCents, setAmountCents] = useState(TIERS[1]);
+  const [coverFees, setCoverFees] = useState(true);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [publicDonation, setPublicDonation] = useState(true);
+  const [piError, setPiError] = useState<string | null>(null);
+  const [piLoading, setPiLoading] = useState(false);
+
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (key) setStripePromise(loadStripe(key));
+  }, []);
+
+  useEffect(() => {
+    // Create/refresh PaymentIntent when amount or fee coverage changes
+    const createPI = async () => {
+      setPiLoading(true);
+      setPiError(null);
+      try {
+        const res = await fetch("/api/stripe/create-payment-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: amountCents, coverFees, name, message, email, publicDonation, recurring: false }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.error || "Failed to create payment intent");
+        setClientSecret(json.clientSecret);
+      } catch (e: any) {
+        setPiError(e.message || "Failed to create payment intent");
+        setClientSecret(null);
+      } finally {
+        setPiLoading(false);
+      }
+    };
+    createPI();
+  }, [amountCents, coverFees, name, message, email, publicDonation]);
 
   const impact = useMemo(() => {
     if (amountCents < 700) return "Covers server uptime for a few days";
@@ -90,6 +104,10 @@ function DonateForm() {
     if (amountCents < 6000) return "Supports a full feature sprint + tests";
     return "Funds multiple bounties and contributor sponsorships";
   }, [amountCents]);
+
+  if (!stripePromise) {
+    return <div className="mt-4 text-slate-400">Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to load Stripe checkout.</div>;
+  }
 
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -126,35 +144,21 @@ function DonateForm() {
       </div>
 
       <div>
+        {piError && <p className="mb-3 text-rose-400 text-sm">{piError}</p>}
         {clientSecret ? (
-          <PaymentElement options={{ layout: "tabs" }} />
+          <Elements stripe={stripePromise} options={{ appearance: { theme: "night" }, clientSecret }}>
+            <PaymentBox
+              amountCents={amountCents}
+              disabled={piLoading || !clientSecret}
+              onSuccess={async () => {
+                await fetch("/api/stats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents }) });
+              }}
+            />
+          </Elements>
         ) : (
-          <div className="text-slate-400">Loading payment form…</div>
+          <div className="text-slate-400">{piLoading ? "Loading payment form…" : "Payment form unavailable"}</div>
         )}
-        {error && <p className="mt-3 text-rose-400 text-sm">{error}</p>}
-        <button onClick={handleDonate} disabled={!clientSecret || !stripe || !elements || loading} className="mt-4 focus-ring glass-strong w-full rounded-xl py-3 font-medium">
-          {loading ? "Processing…" : "Donate with Stripe"}
-        </button>
       </div>
     </div>
-  );
-}
-
-export default function DonateControl() {
-  const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null);
-
-  useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (key) setStripePromise(loadStripe(key));
-  }, []);
-
-  if (!stripePromise) {
-    return <div className="mt-4 text-slate-400">Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to load Stripe checkout.</div>;
-  }
-
-  return (
-    <Elements stripe={stripePromise} options={{ appearance: { theme: "night" } }}>
-      <DonateForm />
-    </Elements>
   );
 }
