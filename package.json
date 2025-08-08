@@ -14,6 +14,7 @@
   "dependencies": {
     "@stripe/react-stripe-js": "^3",
     "@stripe/stripe-js": "^4",
+    "@supabase/supabase-js": "^2.54.0",
     "canvas-confetti": "^1",
     "framer-motion": "^11",
     "next": "15.4.6",
