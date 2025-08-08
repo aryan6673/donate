@@ -50,6 +50,33 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
       setLoading(false);
       return;
     }
+
+    const meta = readMeta();
+
+    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/success`,
+        payment_intent_data: {
+          metadata: {
+            name: meta.name,
+            email: meta.email,
+            githubId: meta.githubId,
+            message: meta.message,
+            publicDonation: String(!!meta.publicDonation),
+            coverFees: String(!!meta.coverFees),
+            recurring: "false",
+          },
+          receipt_email: meta.email || undefined,
+        },
+      },
+      redirect: "if_required",
+    });
+
+    if (confirmErr) {
+      setError(confirmErr.message || "Payment failed");
+      setLoading(false);
+      return;
     }
 
     if (paymentIntent) {
@@ -190,20 +217,24 @@ export default function DonateControl() {
             <label className="text-sm">
               Name <span className="text-rose-400">*</span>
             </label>
-            <input required placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} className="glass rounded-lg px-3 py-2" />
+            <input name="donor_name" required placeholder="Your full name" value={name} onChange={(e) => setName(e.target.value)} className="glass rounded-lg px-3 py-2" />
           </div>
           <div className="grid gap-1">
             <label className="text-sm">
               Email <span className="text-rose-400">*</span>
             </label>
-            <input required type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="glass rounded-lg px-3 py-2" />
+            <input name="donor_email" required type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="glass rounded-lg px-3 py-2" />
             {!emailOk && email.length > 0 && <span className="text-xs text-rose-400">Enter a valid email</span>}
           </div>
-          <div className="grid gap-1">
-            <label className="text-sm">GitHub ID (username)</label>
-            <input placeholder="e.g. aryan6673" value={githubId} onChange={(e) => setGithubId(e.target.value)} className="glass rounded-lg px-3 py-2" />
+          <div className="grid gap-1"><label className="text-sm">GitHub ID (username)</label>
+            <input name="donor_github" placeholder="e.g. aryan6673" value={githubId} onChange={(e) => setGithubId(e.target.value)} className="glass rounded-lg px-3 py-2" />
           </div>
-          <textarea placeholder="Message (optional)" value={message} onChange={(e) => setMessage(e.target.value)} className="glass rounded-lg px-3 py-2 min-h-20" />
+          <textarea name="donor_message" placeholder="Message (optional)" value={message} onChange={(e) => setMessage(e.target.value)} className="glass rounded-lg px-3 py-2 min-h-20" />
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          <label className="flex items-center gap-2 text-sm text-slate-300"><input name="donor_fees" type="checkbox" checked={coverFees} onChange={(e) => setCoverFees(e.target.checked)} /> Cover processing fees</label>
+          <label className="flex items-center gap-2 text-sm text-slate-300"><input name="donor_public" type="checkbox" checked={publicDonation} onChange={(e) => setPublicDonation(e.target.checked)} /> Show on public wall</label>
         </div>
 
         <p className="mt-3 text-sm text-slate-400">Impact: {impact}</p>
