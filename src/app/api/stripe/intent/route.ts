@@ -15,3 +15,25 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: e.message || "Stripe error" }, { status: 500 });
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, metadata, receipt_email } = body || {};
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+    const pi = await stripe.paymentIntents.update(id, {
+      metadata: {
+        ...(metadata || {}),
+        publicDonation: metadata?.publicDonation !== undefined ? String(!!metadata.publicDonation) : undefined,
+        coverFees: metadata?.coverFees !== undefined ? String(!!metadata.coverFees) : undefined,
+        recurring: metadata?.recurring !== undefined ? String(!!metadata.recurring) : undefined,
+      } as any,
+      receipt_email: receipt_email || undefined,
+    });
+
+    return NextResponse.json({ ok: true, status: pi.status });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message || "Stripe update error" }, { status: 500 });
+  }
+}
