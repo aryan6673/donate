@@ -3,42 +3,38 @@
 :root {
   --background: #020617; /* slate-950 */
   --foreground: #e2e8f0; /* slate-200 */
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-body: var(--font-inter);
   --font-mono: var(--font-plex-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #e2e8f0;
-  }
-}
-
-html, body {
-  height: 100%;
-}
+html, body { height: 100%; }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* Glassmorphism helpers */
+/* Glassmorphism helpers (no @apply to avoid tooling warnings) */
 .glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 .glass-strong {
-  @apply bg-white/10 backdrop-blur-2xl border border-white/15 shadow-xl;
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.45);
 }
 
-/* Focus ring for a11y */
-.focus-ring {
-  @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+/* Accessible focus ring */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.7), 0 0 0 4px rgba(0, 0, 0, 1);
 }
 
 /* Hide scrollbars for carousels while keeping scroll */
