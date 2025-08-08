@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -32,28 +31,7 @@ export async function POST(req: Request) {
       receipt_email: email || undefined,
     });
 
-    // Optional: insert a 'processing' row for analytics; final status updated by webhook
-    try {
-      const supabase = getSupabaseAdmin();
-      await supabase.from("donations").upsert(
-        {
-          payment_intent_id: pi.id,
-          amount_cents: finalAmount,
-          currency: "usd",
-          status: "processing",
-          name: name || null,
-          email: email || null,
-          github_id: githubId || null,
-          message: message || null,
-          is_public: !!publicDonation,
-          cover_fees: !!coverFees,
-          recurring: !!recurring,
-        },
-        { onConflict: "payment_intent_id" }
-      );
-    } catch (e) {
-      // ignore DB errors here
-    }
+    // Do NOT insert into DB here. Only the webhook (on success) writes to DB.
 
     return NextResponse.json({ clientSecret: pi.client_secret });
   } catch (e: any) {
