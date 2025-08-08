@@ -1,11 +1,15 @@
 import Image from "next/image";
 import Hero from "@/components/Hero";
+import WhySupport from "@/components/WhySupport";
+import FeaturedCarousel from "@/components/FeaturedCarousel";
 import DonateControl from "@/components/DonateControl";
 
 export default function Home() {
   return (
     <main className="relative">
       <Hero />
+      <WhySupport />
+      <FeaturedCarousel />
       <section id="donate" className="mx-auto max-w-6xl px-6 py-20">
         <div className="glass rounded-2xl p-8">
           <h2 className="text-2xl font-semibold">Donate</h2>
