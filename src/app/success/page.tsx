@@ -43,17 +43,48 @@ export default function SuccessPage() {
     if (status === "succeeded") return "Thank you for your generous support!";
     if (status === "processing") return "Payment is processing";
     if (status === "requires_payment_method" || status === "requires_confirmation") return "Payment not completed";
+    if (status === "canceled") return "Payment canceled";
     return "Payment status";
   }, [loading, status]);
+
+  const state: "loading" | "success" | "failed" = loading
+    ? "loading"
+    : status === "succeeded"
+    ? "success"
+    : status
+    ? "failed"
+    : "loading";
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-24 text-center">
       <div className="glass rounded-2xl p-10">
+        {/* Indicator */}
+        <div className="mx-auto mb-6 h-20 w-20 flex items-center justify-center">
+          {state === "loading" && (
+            <div className="h-16 w-16 rounded-full border-4 border-slate-500/40 border-t-cyan-400 animate-spin" />
+          )}
+          {state === "success" && (
+            <div className="h-16 w-16 rounded-full bg-emerald-500/15 ring-2 ring-emerald-400 flex items-center justify-center">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            </div>
+          )}
+          {state === "failed" && (
+            <div className="h-16 w-16 rounded-full bg-rose-500/15 ring-2 ring-rose-400 flex items-center justify-center">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fb7185" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </div>
+          )}
+        </div>
+
         <h1 className="text-3xl font-semibold">{title}</h1>
         {amount != null && (
           <p className="mt-2 text-slate-300">Amount: {currency(amount)}</p>
         )}
-        {status === "succeeded" && (
+
+        {state === "success" && (
           <div className="mt-6 flex flex-col items-center gap-3">
             <Link href="/" className="inline-flex rounded-full px-5 py-3 glass-strong focus-ring">Back to home</Link>
             <a
@@ -66,7 +97,7 @@ export default function SuccessPage() {
             </a>
           </div>
         )}
-        {status && status !== "succeeded" && (
+        {state === "failed" && (
           <div className="mt-6 flex flex-col items-center gap-3">
             <Link href="/" className="inline-flex rounded-full px-5 py-3 glass focus-ring">Try again</Link>
           </div>
@@ -75,6 +106,12 @@ export default function SuccessPage() {
           <div className="mt-6 text-slate-400">No payment information found.</div>
         )}
       </div>
+
+      {/* minimal spinner animation if Tailwind's animate-spin is unavailable */}
+      <style jsx>{`
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </main>
   );
 }
