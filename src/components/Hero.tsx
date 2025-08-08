@@ -22,7 +22,7 @@ export default function Hero() {
             transition={{ duration: 0.5 }}
             className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight"
           >
-            Support Aryan (aryan6673) — building future-ready, open-source tools.
+            Support Aryan — building future-ready, open-source tools.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 8 }}

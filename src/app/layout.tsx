@@ -12,11 +12,11 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Support Aryan — Open Source & AI Tools",
   description:
-    "Support Aryan (aryan6673) — building future-ready, open-source tools. Help fund forever-free AI & productivity projects.",
+    "Support Aryan — building future-ready, open-source tools. Help fund forever-free AI & productivity projects.",
   openGraph: {
     title: "Support Aryan — Open Source & AI Tools",
     description:
-      "Support Aryan (aryan6673) — building future-ready, open-source tools.",
+      "Support Aryan — building future-ready, open-source tools.",
     url: "/",
     siteName: "Aryan — Donate",
     images: [{ url: "/opengraph-image.png", width: 1200, height: 630 }],
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Support Aryan — Open Source & AI Tools",
     description:
-      "Support Aryan (aryan6673) — building future-ready, open-source tools.",
+      "Support Aryan — building future-ready, open-source tools.",
     images: ["/opengraph-image.png"],
   },
 };
