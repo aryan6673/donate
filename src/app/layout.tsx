@@ -13,15 +13,14 @@ export const metadata: Metadata = {
   title: "Support Aryan — Open Source & AI Tools",
   description:
     "Support Aryan (aryan6673) — building future-ready, open-source tools. Help fund forever-free AI & productivity projects.",
-  metadataBase: new URL("https://deyweaver.live"),
   openGraph: {
     title: "Support Aryan — Open Source & AI Tools",
     description:
       "Support Aryan (aryan6673) — building future-ready, open-source tools.",
-    url: "https://deyweaver.live",
+    url: "/",
     siteName: "Aryan — Donate",
     images: [{ url: "/opengraph-image.png", width: 1200, height: 630 }],
-    locale: "en_IN",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
