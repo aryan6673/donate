@@ -13,7 +13,9 @@ const repos = [
 
 export async function GET() {
   try {
-    const headers = process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {};
+    const headers = new Headers();
+    if (process.env.GITHUB_TOKEN) headers.set("Authorization", `Bearer ${process.env.GITHUB_TOKEN}`);
+
     const data = await Promise.all(
       repos.map(async (name) => {
         const res = await fetch(`https://api.github.com/repos/aryan6673/${name}`, { headers, next: { revalidate } });
