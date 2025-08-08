@@ -15,28 +15,19 @@ body {
   font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
-/* Glassmorphism helpers (no @apply to avoid tooling warnings) */
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-}
-.glass-strong {
-  background: rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 12px 45px rgba(0, 0, 0, 0.45);
-}
+/* Glassmorphism helpers */
+.glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.10); box-shadow: 0 8px 30px rgba(0,0,0,0.35); }
+.glass-strong { background: rgba(255,255,255,0.10); backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px); border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 12px 45px rgba(0,0,0,0.45); }
 
 /* Accessible focus ring */
-.focus-ring:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.7), 0 0 0 4px rgba(0, 0, 0, 1);
-}
+.focus-ring:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(45,212,191,0.7), 0 0 0 4px rgba(0,0,0,1); }
 
-/* Hide scrollbars for carousels while keeping scroll */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
+/* Hide scrollbars but keep scroll */
+.scrollbar-hide::-webkit-scrollbar { width: 0; height: 0; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Smooth scrolling improvements */
+@media (prefers-reduced-motion: no-preference) {
+  .snap-x { scroll-snap-type: x mandatory; }
+  .snap-start { scroll-snap-align: start; }
+}
