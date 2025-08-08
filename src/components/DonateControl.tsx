@@ -11,7 +11,7 @@ function currency(amountCents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amountCents / 100);
 }
 
-function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number; onSuccess: () => Promise<void> | void; disabled: boolean }) {
+function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number; onSuccess: (chargedCents: number) => Promise<void> | void; disabled: boolean }) {
   const stripe = useStripe();
   const elements = useElements();
   const { mutate } = useSWRConfig();
@@ -43,7 +43,8 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
     }
 
     if (paymentIntent && paymentIntent.status === "succeeded") {
-      await onSuccess();
+      const charged = typeof paymentIntent.amount === "number" ? paymentIntent.amount : amountCents;
+      await onSuccess(charged);
       await mutate("/api/stats");
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 } });
     }
@@ -53,7 +54,7 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
 
   return (
     <div>
-      <PaymentElement options={{ layout: "tabs" }} />
+      <PaymentElement key={`pe-${amountCents}`} options={{ layout: "tabs" }} />
       {error && <p className="mt-3 text-rose-400 text-sm">{error}</p>}
       <button onClick={handleDonate} disabled={disabled || !stripe || !elements || loading} className="mt-4 focus-ring glass-strong w-full rounded-xl py-3 font-medium">
         {loading ? "Processing…" : `Donate ${currency(amountCents)}`}
@@ -153,12 +154,12 @@ export default function DonateControl() {
       <div>
         {piError && <p className="mb-3 text-rose-400 text-sm">{piError}</p>}
         {clientSecret ? (
-          <Elements stripe={stripePromise} options={{ appearance: { theme: "night" }, clientSecret }}>
+          <Elements key={`el-${clientSecret}`} stripe={stripePromise} options={{ appearance: { theme: "night" }, clientSecret }}>
             <PaymentBox
               amountCents={amountCents}
               disabled={piLoading || !clientSecret}
-              onSuccess={async () => {
-                await fetch("/api/stats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents }) });
+              onSuccess={async (chargedCents) => {
+                await fetch("/api/stats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents: chargedCents }) });
               }}
             />
           </Elements>
