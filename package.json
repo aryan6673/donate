@@ -6,18 +6,21 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "^3.9.0",
-    "@stripe/stripe-js": "^7.8.0",
-    "canvas-confetti": "^1.9.3",
-    "framer-motion": "^12.23.12",
+    "@stripe/react-stripe-js": "^3",
+    "@stripe/stripe-js": "^4",
+    "canvas-confetti": "^1",
+    "framer-motion": "^11",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "stripe": "^18.4.0",
-    "swr": "^2.3.4"
+    "stripe": "^16",
+    "swr": "^2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,6 +30,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
+    "storybook": "^8",
+    "@storybook/react-vite": "^8",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
