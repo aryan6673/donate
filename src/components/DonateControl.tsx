@@ -25,6 +25,10 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
   const [error, setError] = useState<string | null>(null);
 
   const handleDonate = async () => {
+    if (disabled) {
+      setError("Enter your name and a valid email to continue.");
+      return;
+    }
     if (!stripe || !elements) return;
     setLoading(true);
     setError(null);
@@ -89,7 +93,7 @@ export default function DonateControl() {
   const [piLoading, setPiLoading] = useState(false);
 
   const emailOk = validEmail(email);
-  const canInitPI = name.trim().length > 0 && emailOk;
+  const readyToPay = name.trim().length > 0 && emailOk;
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -97,12 +101,8 @@ export default function DonateControl() {
   }, []);
 
   useEffect(() => {
-    // Only create/refresh PaymentIntent when required fields are present
+    // Always create/refresh PI so PaymentElement loads; include metadata when available
     const createPI = async () => {
-      if (!canInitPI) {
-        setClientSecret(null);
-        return;
-      }
       setPiLoading(true);
       setPiError(null);
       try {
@@ -122,7 +122,7 @@ export default function DonateControl() {
       }
     };
     createPI();
-  }, [amountCents, coverFees, name, message, email, githubId, publicDonation, canInitPI]);
+  }, [amountCents, coverFees, name, message, email, githubId, publicDonation]);
 
   const impact = useMemo(() => {
     if (amountCents < 700) return "Covers server uptime for a few days";
@@ -135,7 +135,7 @@ export default function DonateControl() {
     return <div className="mt-4 text-slate-400">Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to load Stripe checkout.</div>;
   }
 
-  const showMissing = !canInitPI;
+  const showMissing = !readyToPay;
 
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -189,15 +189,11 @@ export default function DonateControl() {
       <div>
         {piError && <p className="mb-3 text-rose-400 text-sm">{piError}</p>}
         {showMissing && <p className="mb-3 text-amber-400 text-sm">Enter your name and a valid email to continue.</p>}
-        {clientSecret && !showMissing ? (
+        {clientSecret ? (
           <Elements key={`el-${clientSecret}`} stripe={stripePromise} options={{ appearance: { theme: "night" }, clientSecret }}>
-            <PaymentBox
-              amountCents={amountCents}
-              disabled={piLoading || !clientSecret}
-              onSuccess={async (chargedCents) => {
-                await fetch("/api/stats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents: chargedCents }) });
-              }}
-            />
+            <PaymentBox amountCents={amountCents} disabled={piLoading || !clientSecret || showMissing} onSuccess={async (chargedCents) => {
+              await fetch("/api/stats", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountCents: chargedCents }) });
+            }} />
           </Elements>
         ) : (
           <div className="text-slate-400">{piLoading ? "Loading payment form…" : "Payment form unavailable"}</div>
