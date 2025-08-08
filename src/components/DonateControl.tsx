@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import confetti from "canvas-confetti";
+import { useSWRConfig } from "swr";
 
 const TIERS = [500, 999, 2499, 9999]; // cents: $5, $9.99, $24.99, $99.99
 
@@ -13,6 +14,7 @@ function currency(amountCents: number) {
 function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number; onSuccess: () => Promise<void> | void; disabled: boolean }) {
   const stripe = useStripe();
   const elements = useElements();
+  const { mutate } = useSWRConfig();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,9 +32,7 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
 
     const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/success`,
-      },
+      confirmParams: { return_url: `${window.location.origin}/success` },
       redirect: "if_required",
     });
 
@@ -44,6 +44,7 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
 
     if (paymentIntent && paymentIntent.status === "succeeded") {
       await onSuccess();
+      await mutate("/api/stats");
       confetti({ particleCount: 120, spread: 80, origin: { y: 0.7 } });
     }
 

@@ -43,7 +43,10 @@ export default function Hero() {
           </div>
 
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Stat label="Total raised" value={`₹${(stats?.totalRaised ?? 0).toLocaleString("en-IN")}`} />
+            <Stat
+              label="Total raised"
+              value={new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(((stats?.totalRaisedCents ?? 0) as number) / 100)}
+            />
             <Stat label="Repos" value={profile?.public_repos ?? "—"} />
             <Stat label="Followers" value={profile?.followers ?? "—"} />
             <Stat label="Commits (yr)" value={stats?.commitsYear ?? "—"} />
