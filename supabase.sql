@@ -27,10 +27,12 @@ create index if not exists donations_public_idx on public.donations(is_public);
 alter table public.donations enable row level security;
 
 -- Allow the anon role to read only public, succeeded donations (names/messages intended for a wall)
-create policy if not exists "Public can read public succeeded donations"
-  on public.donations for select
-  to anon
-  using (is_public = true and status = 'succeeded');
+DROP POLICY IF EXISTS "Public can read public succeeded donations" ON public.donations;
+CREATE POLICY "Public can read public succeeded donations"
+  ON public.donations
+  FOR SELECT
+  TO anon
+  USING (is_public = true and status = 'succeeded');
 
 -- 3) A view for aggregate stats (totals of public, succeeded donations)
 create or replace view public.donation_stats as
