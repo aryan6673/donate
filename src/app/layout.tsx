@@ -31,9 +31,9 @@ export const metadata: Metadata = {
     images: ["/opengraph-image.png"],
   },
   icons: {
-    icon: "https://github.githubassets.com/favicons/favicon.svg",
-    shortcut: "https://github.githubassets.com/favicons/favicon.svg",
-    apple: "https://github.githubassets.com/favicons/favicon.svg",
+    icon: "/assets/gitlog.png",
+    shortcut: "/assets/gitlog.png",
+    apple: "/assets/gitlog.png",
   },
 };
 
