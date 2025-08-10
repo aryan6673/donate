@@ -44,6 +44,28 @@ export default function RootLayout({
         <div className="pointer-events-none fixed inset-0 [mask-image:radial-gradient(400px_200px_at_top,white,transparent)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(56,189,248,0.12),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.10),transparent_35%),radial-gradient(circle_at_50%_80%,rgba(16,185,129,0.10),transparent_45%)]" />
         </div>
+
+        {/* GitHub corner bookmark (top-right) */}
+        <a
+          href="https://github.com/aryan6673/donate"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="View repository on GitHub"
+          title="View on GitHub"
+          className="fixed top-0 right-0 z-50 w-14 h-14 group"
+        >
+          <span className="absolute inset-0 bg-gradient-to-br from-slate-800/80 to-slate-900/90 ring-1 ring-white/10 backdrop-blur-sm transition-all duration-300 group-hover:brightness-110 group-hover:-translate-x-0.5 group-hover:translate-y-0.5 clip-path-[polygon(100%_0,0_0,100%_100%)]" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="absolute top-2 right-2 w-5 h-5 text-white transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
+            aria-hidden="true"
+          >
+            <path d="M12 .5a12 12 0 00-3.79 23.4c.6.11.82-.26.82-.58v-2.02c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.74.08-.74 1.2.08 1.84 1.23 1.84 1.23 1.07 1.84 2.81 1.31 3.49 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.48-1.34-5.48-5.95 0-1.31.47-2.38 1.23-3.22-.12-.3-.54-1.52.12-3.17 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 016 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.65.24 2.87.12 3.17.77.84 1.23 1.91 1.23 3.22 0 4.62-2.81 5.65-5.49 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.21.69.82.58A12 12 0 0012 .5z" />
+          </svg>
+          <span className="sr-only">GitHub</span>
+        </a>
+
         {children}
       </body>
     </html>
