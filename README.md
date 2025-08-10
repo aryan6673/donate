@@ -36,6 +36,7 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
    - `STRIPE_SECRET_KEY=sk_test_...`
    - `STRIPE_WEBHOOK_SECRET=whsec_...` (optional; from Stripe CLI or Dashboard)
    - Optional: `GITHUB_TOKEN=ghp_...` (for GitHub API rate limits)
+   - `NEXT_PUBLIC_SITE_URL=https://your-deployed-domain` (used by sitemap/robots and metadata)
 4) Set your starting total: edit `public/raised.txt` (integer cents, e.g., `0` or `12345`).
 5) Install and run locally:
    - `npm install`
