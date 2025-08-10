@@ -87,3 +87,32 @@ Made with love by [aryan6673](https://github.com/aryan6673) ❤️
 ---
 
 If this helps your project, star the repo and share it with another maintainer. One less blocker between your work and your supporters.
+
+## Add a Sponsor button to your GitHub repos
+Once your site is deployed (e.g., https://your-donate-site.vercel.app), you can add a Sponsor button that links directly to it.
+
+1) Copy your donation link (the deployed URL of this app).
+2) In each repository you want the Sponsor button on, add a file at `.github/FUNDING.yml` with your link:
+
+```yml
+# .github/FUNDING.yml
+# Shows a Sponsor button on your repo header
+# Replace with your deployed donation URL
+custom:
+  - https://your-donate-site.vercel.app
+```
+
+3) Commit and push. GitHub will show a “Sponsor” button on the repo header that opens your donation page.
+
+Tip
+- You can also include your GitHub handle or other platforms:
+```yml
+github: [ your-github-username ]
+custom:
+  - https://your-donate-site.vercel.app
+```
+- For organizations, placing `.github/FUNDING.yml` in the org’s special `.github` repo applies it to all repos that don’t define their own.
+
+Example look (in your repo place the image at `assets/look.png`)
+
+![Sponsor button example](assets/look.png)
