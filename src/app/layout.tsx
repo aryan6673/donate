@@ -30,11 +30,6 @@ export const metadata: Metadata = {
       "Support Aryan — building future-ready, open-source tools.",
     images: ["/opengraph-image.png"],
   },
-  icons: {
-    icon: "/assets/gitlog.png",
-    shortcut: "/assets/gitlog.png",
-    apple: "/assets/gitlog.png",
-  },
 };
 
 export default function RootLayout({
