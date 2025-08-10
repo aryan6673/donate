@@ -9,7 +9,7 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
   <img alt="Stripe" src="https://img.shields.io/badge/Stripe-PaymentIntents-635bff?logo=stripe&logoColor=white" />
   <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg" />
   <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" />
-  <a href="https://pagespeed.web.dev/report?url=https://yourprojecturl.com">
+  <a href="https://pagespeed.web.dev/analysis?url=https%3A%2F%2Faryan.deyweaver.live%2F">
     <img alt="PageSpeed 100" src="https://img.shields.io/badge/PageSpeed-100%2F100-brightgreen?style=flat&logo=google-chrome&logoColor=white" />
   </a>
   <a href="https://summer.hackclub.com/projects/10572">
