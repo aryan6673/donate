@@ -73,26 +73,13 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
 - One‑click: use the “Deploy with Vercel” button above.
 - Or import the repo in Vercel, set env vars, and deploy. Ensure `public/raised.txt` exists in your repo.
 
-## Roadmap (you can pick these up)
-- Optional donor wall sourced from Stripe charges/metadata.
-- Real GitHub “commits this year” metric.
-- Multi‑currency support.
-
-## Contributing & License
-- Issues and PRs welcome. See `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`.
-- MIT License. See `LICENSE`.
-
-Made with love by [aryan6673](https://github.com/aryan6673) ❤️
-
 ---
-
-If this helps your project, star the repo and share it with another maintainer. One less blocker between your work and your supporters.
 
 ## Add a Sponsor button to your GitHub repos
 Here’s how it will look in your repo:
 
 <p align="left">
-  <img src="assets/look.png" alt="Sponsor button example" width="360" />
+  <img src="assets/look.png" alt="Sponsor button example" width="250" />
 </p>
 
 Add the button that links to your donation page in 3 quick steps:
@@ -122,3 +109,19 @@ custom:
   - https://your-donate-site.vercel.app
 ```
 - Organization-wide: put `.github/FUNDING.yml` in your org’s special `.github` repository to apply it to all repos that don’t have their own.
+
+
+## Roadmap (you can pick these up)
+- Optional donor wall sourced from Stripe charges/metadata.
+- Real GitHub “commits this year” metric.
+- Multi‑currency support.
+
+## Contributing & License
+- Issues and PRs welcome. See `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`.
+- MIT License. See `LICENSE`.
+
+Made with love by [aryan6673](https://github.com/aryan6673) ❤️
+
+
+If this helps your project, star the repo and share it with another maintainer. One less blocker between your work and your supporters.
+
