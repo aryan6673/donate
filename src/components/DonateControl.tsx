@@ -4,6 +4,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import confetti from "canvas-confetti";
 import { useSWRConfig } from "swr";
+import useSWR from "swr";
 import { useRouter } from "next/navigation";
 
 const TIERS = [500, 999, 2499, 9999]; // cents: $5, $9.99, $24.99, $99.99
@@ -55,10 +56,11 @@ function PaymentBox({ amountCents, onSuccess, disabled }: { amountCents: number;
 
     await updatePiMetadata();
 
-    const { error: confirmErr, paymentIntent } = await stripe.confirmPayment({ elements, confirmParams: { return_url: `${window.location.origin}/success` } });
+    const confirmResult = await stripe.confirmPayment({ elements, confirmParams: { return_url: `${window.location.origin}/success` } });
 
-    if (confirmErr) { setError(confirmErr.message || "Payment failed"); setLoading(false); return; }
+    if (confirmResult.error) { setError(confirmResult.error.message || "Payment failed"); setLoading(false); return; }
 
+    const paymentIntent = (confirmResult as any).paymentIntent;
     if (paymentIntent) {
       const charged = typeof paymentIntent.amount === "number" ? paymentIntent.amount : amountCents;
       if (paymentIntent.status === "succeeded") {
@@ -97,6 +99,9 @@ export default function DonateControl() {
   const [publicDonation, setPublicDonation] = useState(true);
   const [piError, setPiError] = useState<string | null>(null);
   const [piLoading, setPiLoading] = useState(false);
+
+  const { data: donationData } = useSWR("/api/donations", (u) => fetch(u).then((r) => r.json()), { refreshInterval: 60000 });
+  const totalRaisedCents = donationData?.totalRaisedCents ?? 0;
 
   const emailOk = validEmail(email);
   const readyToPay = name.trim().length > 0 && emailOk;
@@ -189,6 +194,12 @@ export default function DonateControl() {
         ) : (
           <div className="text-slate-400">{piLoading ? "Loading payment form…" : "Payment form unavailable"}</div>
         )}
+
+        {/* Total Raised panel */}
+        <div className="mt-4 glass rounded-xl p-4 text-sm flex items-center justify-between">
+          <span className="text-slate-300">Total raised</span>
+          <strong className="text-white">{currency(totalRaisedCents)}</strong>
+        </div>
       </div>
     </div>
   );
