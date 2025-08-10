@@ -1,14 +1,16 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 
 function currency(amountCents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amountCents / 100);
 }
 
-export default function SuccessPage() {
+function SuccessContent() {
   const sp = useSearchParams();
   const id = sp.get("payment_intent");
   const [loading, setLoading] = useState<boolean>(!!id);
@@ -113,5 +115,24 @@ export default function SuccessPage() {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </main>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto max-w-3xl px-6 py-24 text-center">
+          <div className="glass rounded-2xl p-10">
+            <div className="mx-auto mb-6 h-20 w-20 flex items-center justify-center">
+              <div className="h-16 w-16 rounded-full border-4 border-slate-500/40 border-t-cyan-400 animate-spin" />
+            </div>
+            <h1 className="text-3xl font-semibold">Loading…</h1>
+          </div>
+        </main>
+      }
+    >
+      <SuccessContent />
+    </Suspense>
   );
 }
