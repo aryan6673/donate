@@ -47,8 +47,8 @@ export default function Hero() {
             </a>
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-4 text-sm text-slate-300">
-            <span>Total raised: <strong className="text-white">{usd(total)}</strong></span>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+            <Stat label="Total raised" value={usd(total)} />
             <Stat label="Repos" value={profile?.public_repos ?? "—"} />
             <Stat label="Followers" value={profile?.followers ?? "—"} />
             <Stat label="Commits (yr)" value={stats?.commitsYear ?? "—"} />
