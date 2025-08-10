@@ -12,7 +12,11 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
   <a href="https://pagespeed.web.dev/report?url=https://yourprojecturl.com">
     <img alt="PageSpeed 100" src="https://img.shields.io/badge/PageSpeed-100%2F100-brightgreen?style=flat&logo=google-chrome&logoColor=white" />
   </a>
+  <a href="https://summer.hackclub.com/projects/10572">
+    <img alt="Hack Club Batch" src="https://img.shields.io/badge/Hack%20Club-Project-red?style=flat&logo=hackclub&logoColor=white" />
+  </a>
 </p>
+
 
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/aryan6673/donate&env=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,STRIPE_SECRET_KEY,STRIPE_WEBHOOK_SECRET,GITHUB_TOKEN)
