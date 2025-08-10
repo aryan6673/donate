@@ -45,19 +45,19 @@ export default function RootLayout({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(56,189,248,0.12),transparent_40%),radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.10),transparent_35%),radial-gradient(circle_at_50%_80%,rgba(16,185,129,0.10),transparent_45%)]" />
         </div>
 
-        {/* GitHub corner bookmark (top-left, black triangle, true clipped) */}
+        {/* GitHub corner bookmark (top-left, true black triangle) */}
         <a
           href="https://github.com/aryan6673/donate"
           target="_blank"
           rel="noreferrer"
           aria-label="View repository on GitHub"
           title="View on GitHub"
-          className="fixed top-0 left-0 z-50 w-16 h-16 group"
+          className="fixed top-0 left-0 z-50 block w-16 h-16 group"
           style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)", WebkitClipPath: "polygon(0 0, 100% 0, 0 100%)" }}
         >
           <span
-            className="absolute inset-0 bg-black transition-all duration-300 group-hover:brightness-110"
-            style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)", WebkitClipPath: "polygon(0 0, 100% 0, 0 100%)" }}
+            className="absolute top-0 left-0 block"
+            style={{ width: 0, height: 0, borderTop: "64px solid #000", borderRight: "64px solid transparent" }}
           />
           <svg
             viewBox="0 0 24 24"
