@@ -1,43 +1,85 @@
-# Donation page
+# Open Source Donation Page — Stripe‑powered, zero‑DB
 
 ![Screenshot](/assets/ss.png)
 
-Next.js app with Stripe Payments and a simple, manual total raised. No database. The UI reads the total (in cents) from `public/raised.txt`.
+A polished donation page for open‑source developers. Built with Next.js + Stripe. No database, no vendor lock‑in. Total raised is a simple text file you control.
 
-## Use this template (fork and make it your own)
-1) On GitHub, click "Use this template" (or Fork) to create your repo.
-2) Clone your new repo locally.
-3) Set env vars (see below) in `.env.local`.
-4) Set your starting total: edit `public/raised.txt` and put an integer amount in cents (e.g., `0` or `12345`).
-5) Optional: update the GitHub corner link to your repo in `src/app/layout.tsx` (the top-right bookmark link).
-6) Install and run:
-   - npm install
-   - npm run dev
-7) For local webhooks (optional but recommended for testing):
-   - stripe listen --forward-to localhost:3000/api/stripe/webhook
-   - Put the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET` and restart dev.
+<p align="left">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-14-black?logo=nextdotjs" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-blue?logo=typescript" />
+  <img alt="Stripe" src="https://img.shields.io/badge/Stripe-PaymentIntents-635bff?logo=stripe&logoColor=white" />
+  <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg" />
+  <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" />
+</p>
 
-## Environment
-Put these in `.env.local`:
-- NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-- STRIPE_SECRET_KEY=sk_test_...
-- STRIPE_WEBHOOK_SECRET=whsec_... (from Stripe CLI or Dashboard)
-- Optional: GITHUB_TOKEN=ghp_... (for higher GitHub API rate limits)
+## Why this exists
+- For maintainers who want a clean, trustworthy way to accept donations.
+- For teams who don’t want a database just to show a public “total raised”.
+- For anyone who values clarity, speed, and ownership over their stack.
 
-## How totals work
-- `public/raised.txt` holds the public total, as an integer number of cents.
-- API `GET /api/donations` and `GET /api/stats` both read this file and return `totalRaisedCents` to the UI.
-- There is no database write and no automatic aggregation from Stripe. Update the total by editing `public/raised.txt` (commit/deploy as needed).
+## What you get
+- Stripe Elements + PaymentIntents (card, Apple/Google Pay via browser wallets; Cash App return_url wired).
+- Required name/email, optional GitHub handle and public/private toggle.
+- Out‑of‑the‑box success page with spinner → success/failed states.
+- GitHub profile and repos section (uses optional `GITHUB_TOKEN` for higher rate limits).
+- Total raised tile and a panel under the payment box.
+- Zero database. Public total comes from `public/raised.txt` (integer cents).
+- Glassmorphism UI, dark theme, accessible focus states.
+- Friendly code, TypeScript, App Router.
 
-## Stripe flow (what gets stored)
-- Stripe Elements + PaymentIntents; confirmation happens client-side.
-- Required fields: name and email are validated before confirmation.
-- Metadata attached to the PaymentIntent: `name`, `githubId`, `message`, `publicDonation`.
-- Email is set via `receipt_email` for receipts.
-- The webhook verifies signatures and returns 200 (no DB writes).
+## 30‑second setup
+1) Use this template (or Fork) on GitHub.
+2) Clone locally.
+3) Create `.env.local` with your keys:
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...`
+   - `STRIPE_SECRET_KEY=sk_test_...`
+   - `STRIPE_WEBHOOK_SECRET=whsec_...` (optional; from Stripe CLI or Dashboard)
+   - Optional: `GITHUB_TOKEN=ghp_...` (for GitHub API rate limits)
+4) Set your starting total: edit `public/raised.txt` (integer cents, e.g., `0` or `12345`).
+5) Install and run locally:
+   - `npm install`
+   - `npm run dev`
+6) Optional (recommended) webhook for local testing:
+   - `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+   - Put the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET` and restart.
+
+## How “total raised” works
+- A single file `public/raised.txt` contains the public total as cents.
+- The API routes `GET /api/donations` and `GET /api/stats` read this file and serve `totalRaisedCents`.
+- No automatic aggregation from Stripe. You control the number. Update the file and deploy.
+
+## Customize it
+- Repo link (the top‑right GitHub corner): `src/app/layout.tsx`.
+- Featured projects carousel/cards: `src/components/FeaturedCarousel.tsx`.
+- Donation UI (tiers, slider, toggles): `src/components/DonateControl.tsx`.
+- Hero copy and stats row: `src/components/Hero.tsx`.
+- Success page message: `src/app/success/page.tsx`.
+- Styling utilities and theme: `src/app/globals.css`.
+
+## Key endpoints
+- `POST /api/stripe/create-payment-intent` → Creates PaymentIntent.
+- `GET/PATCH /api/stripe/intent` → Reads/updates PaymentIntent (metadata, receipt email).
+- `POST /api/stripe/webhook` → Signature verified; returns 200 (no DB writes).
+- `GET /api/github/profile` + `GET /api/github/repos` → Public GitHub data.
+- `GET /api/donations` + `GET /api/stats` → Read `public/raised.txt`.
+
+## Security & privacy
+- Sensitive operations occur server‑side via Stripe SDK.
+- No customer data is stored in this app. Donor name/email live in Stripe.
+- Webhook is verified with your `STRIPE_WEBHOOK_SECRET`.
 
 ## Deploy
-- Works great on Vercel. Add env vars in the dashboard. Ensure `public/raised.txt` is present in your repo.
+- Works well on Vercel. Add the env vars in the project settings. Ensure `public/raised.txt` exists in your repo.
 
-## License
-MIT. See `LICENSE`.
+## Roadmap (you can pick these up)
+- Optional donor wall sourced from Stripe charges/metadata.
+- Real GitHub “commits this year” metric.
+- Multi‑currency support.
+
+## Contributing & License
+- Issues and PRs welcome. See `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`.
+- MIT License. See `LICENSE`.
+
+---
+
+If this helps your project, star the repo and share it with another maintainer. One less blocker between your work and your supporters.
