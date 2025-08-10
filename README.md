@@ -1,4 +1,4 @@
-# Donation Pag
+# Donation Page
 ![Screenshot](/assets/ss.png)
 
 A polished donation page for open‑source developers. Built with Next.js + Stripe. No database, no vendor lock‑in. Total raised is a simple text file you control.
