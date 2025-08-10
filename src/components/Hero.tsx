@@ -47,7 +47,7 @@ export default function Hero() {
             </a>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-4 flex flex-wrap items-center justify-start gap-4">
             <Stat label="Total raised" value={usd(total)} />
             <Stat label="Repos" value={profile?.public_repos ?? "—"} />
             <Stat label="Followers" value={profile?.followers ?? "—"} />
