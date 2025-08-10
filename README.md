@@ -11,6 +11,8 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
   <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" />
 </p>
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/aryan6673/donate&env=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,STRIPE_SECRET_KEY,STRIPE_WEBHOOK_SECRET,GITHUB_TOKEN)
+
 ## Why this exists
 - For maintainers who want a clean, trustworthy way to accept donations.
 - For teams who don’t want a database just to show a public “total raised”.
@@ -68,7 +70,8 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
 - Webhook is verified with your `STRIPE_WEBHOOK_SECRET`.
 
 ## Deploy
-- Works well on Vercel. Add the env vars in the project settings. Ensure `public/raised.txt` exists in your repo.
+- One‑click: use the “Deploy with Vercel” button above.
+- Or import the repo in Vercel, set env vars, and deploy. Ensure `public/raised.txt` exists in your repo.
 
 ## Roadmap (you can pick these up)
 - Optional donor wall sourced from Stripe charges/metadata.
@@ -78,6 +81,8 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
 ## Contributing & License
 - Issues and PRs welcome. See `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`.
 - MIT License. See `LICENSE`.
+
+Made with love by [aryan6673](https://github.com/aryan6673) ❤️
 
 ---
 
