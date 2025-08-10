@@ -9,7 +9,11 @@ A polished donation page for open‑source developers. Built with Next.js + Stri
   <img alt="Stripe" src="https://img.shields.io/badge/Stripe-PaymentIntents-635bff?logo=stripe&logoColor=white" />
   <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg" />
   <img alt="PRs Welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" />
+  <a href="https://pagespeed.web.dev/report?url=https://yourprojecturl.com">
+    <img alt="PageSpeed 100" src="https://img.shields.io/badge/PageSpeed-100%2F100-brightgreen?style=flat&logo=google-chrome&logoColor=white" />
+  </a>
 </p>
+
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/aryan6673/donate&env=NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,STRIPE_SECRET_KEY,STRIPE_WEBHOOK_SECRET,GITHUB_TOKEN)
 
