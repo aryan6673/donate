@@ -5,10 +5,10 @@ export const revalidate = 3600;
 const repos = [
   "DeyWeaver",
   "Numerology-app",
-  "calculator",
-  "Chimera",
+  "donate",
+  "eduai",
   "InstaTools",
-  "project-AI",
+  "NoteScape-2.0",
 ];
 
 export async function GET() {
